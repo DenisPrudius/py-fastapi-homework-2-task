@@ -75,7 +75,7 @@ async def get_movies(
     if not movies:
         raise HTTPException(status_code=404, detail="No movies found.")
 
-    base_url = request.url.path
+    base_url = request.url.path.replace("/api/v1", "")
     next_page = f"{base_url}?page={page + 1}&per_page={per_page}" if page < total_pages else None
     prev_page = f"{base_url}?page={page - 1}&per_page={per_page}" if page > 1 else None
 
@@ -111,7 +111,7 @@ async def create_movie(movie: MovieCreateSchema, db: AsyncSession = Depends(get_
     if existing_movie:
         raise HTTPException(
             status_code=409,
-            detail=f"A movie with the same '{movie.name}' and release date '{movie.date}' already exists."
+            detail=f"A movie with the name '{movie.name}' and release date '{movie.date}' already exists."
         )
 
     country = await db.scalar(select(CountryModel).where(CountryModel.code == movie.country))
