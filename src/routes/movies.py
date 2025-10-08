@@ -75,7 +75,7 @@ async def get_movies(
     if not movies:
         raise HTTPException(status_code=404, detail="No movies found.")
 
-    base_url = str(request.url).split("?")[0]
+    base_url = request.url.path
     next_page = f"{base_url}?page={page + 1}&per_page={per_page}" if page < total_pages else None
     prev_page = f"{base_url}?page={page - 1}&per_page={per_page}" if page > 1 else None
 
@@ -111,10 +111,17 @@ async def create_movie(movie: MovieCreateSchema, db: AsyncSession = Depends(get_
     if existing_movie:
         raise HTTPException(
             status_code=409,
-            detail=f"A Movie with the same '{movie.name}' and release date '{movie.date}' already exists."
+            detail=f"A movie with the same '{movie.name}' and release date '{movie.date}' already exists."
         )
 
     country = await db.scalar(select(CountryModel).where(CountryModel.code == movie.country))
+    if not country:
+        country = CountryModel(
+            code=movie.country,
+            name=movie.country
+        )
+        db.add(country)
+        await db.flush()
 
     genres = await get_or_create(db, GenreModel, movie.genres)
     actors = await get_or_create(db, ActorModel, movie.actors)
@@ -177,7 +184,7 @@ async def update_movie(movie_id: int, movie_update: MovieUpdateSchema, db: Async
     if not movie:
         raise HTTPException(status_code=404, detail="Movie with the given ID was not found.")
 
-    update_data = movie_update.dict(exclude_unset=True)
+    update_data = movie_update.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(movie, key, value)
     await db.commit()
