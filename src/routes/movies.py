@@ -1,7 +1,7 @@
 import math
 from typing import List
 
-import pycountry
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import select, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -115,11 +115,11 @@ async def create_movie(movie: MovieCreateSchema, db: AsyncSession = Depends(get_
         )
 
     country = await db.scalar(select(CountryModel).where(CountryModel.code == movie.country))
-    if not country:
-        country_info = pycountry.countries.get(alpha_3=movie.country)
-        country = CountryModel(code=movie.country, name=country_info.name)
-        db.add(country)
-        await db.flush()
+    # if not country:
+        # country_info = pycountry.countries.get(alpha_3=movie.country)
+        # country = CountryModel(code=movie.country, name=country_info.name)
+        # db.add(country)
+        # await db.flush()
 
     genres = await get_or_create(db, GenreModel, movie.genres)
     actors = await get_or_create(db, ActorModel, movie.actors)
