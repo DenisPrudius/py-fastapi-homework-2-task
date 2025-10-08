@@ -27,6 +27,7 @@ router = APIRouter()
 
 # ---------------- Helper Functions ----------------
 
+
 async def get_or_create(db: AsyncSession, model, name_list: List[str]):
     items = []
     for name in name_list:
@@ -37,7 +38,6 @@ async def get_or_create(db: AsyncSession, model, name_list: List[str]):
             await db.commit()
         items.append(obj)
     return items
-
 
 
 @router.get(
@@ -114,7 +114,6 @@ async def create_movie(movie: MovieCreateSchema, db: AsyncSession = Depends(get_
             detail=f"A Movie with the same '{movie.name}' and release date '{movie.date}' already exists."
         )
 
-
     country = await db.scalar(select(CountryModel).where(CountryModel.code == movie.country))
     if not country:
         country_info = pycountry.countries.get(alpha_3=movie.country)
@@ -125,7 +124,6 @@ async def create_movie(movie: MovieCreateSchema, db: AsyncSession = Depends(get_
     genres = await get_or_create(db, GenreModel, movie.genres)
     actors = await get_or_create(db, ActorModel, movie.actors)
     languages = await get_or_create(db, LanguageModel, movie.languages)
-
 
     new_movie = MovieModel(
         name=movie.name,
